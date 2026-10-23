@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070b1c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cielo">
+<meta name="description" content="El cielo nocturno visto desde El Fuerte, Sinaloa.">
+<title>Cielo de El Fuerte</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Serif:ital@0;1&display=swap">
+<style>
+:root{--bg:#070b1c;--ink:#eadcbc;--gold:#d9b56a;--dim:rgba(234,220,188,.65);--card:rgba(10,14,32,.93);--line:rgba(217,181,106,.35);--on:rgba(217,181,106,.22)}
+body.red{--bg:#120405;--ink:#ff9a88;--gold:#c8463a;--dim:rgba(255,154,136,.62);--card:rgba(24,4,5,.95);--line:rgba(200,70,58,.4);--on:rgba(200,70,58,.25)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Cormorant Garamond",Georgia,serif;overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+[hidden]{display:none!important}
+#sky{position:fixed;top:0;left:0;touch-action:none;display:block}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(12px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:14px;pointer-events:none;z-index:3}
+.ib{pointer-events:auto;width:54px;height:54px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--gold);display:grid;place-items:center;padding:0}
+.ib svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ib[aria-pressed=true]{background:var(--on);border-color:var(--gold)}
+#card{position:fixed;left:12px;right:12px;bottom:calc(80px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 16px;transform:translateY(14px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:2}
+#card.show{transform:none;opacity:1;pointer-events:auto}
+#card .ch{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+#cName{font-size:28px;font-weight:500;line-height:1.1}
+.ipa{font-family:"Noto Serif","Charis SIL",serif;font-size:15px;color:var(--dim)}
+#cMeta{font-size:16px;color:var(--dim);margin:2px 0 6px}
+#cNote{font-size:17px;line-height:1.45;margin:0 0 8px}
+#cFoot{font-size:15px;color:var(--dim);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#cFoot a{color:var(--gold)}
+#scrim{position:fixed;inset:0;z-index:4;display:none}
+#scrim.open{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:640px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;padding:12px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .3s;max-height:78dvh;overflow:auto;z-index:5}
+.sheet.open{transform:none}
+.grip{width:42px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 10px}
+h3{margin:12px 0 4px;font-weight:400;font-size:15px;color:var(--dim);font-family:"Noto Serif",serif}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{display:inline-flex;align-items:center;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:8px 15px;font:inherit;font-size:17px;min-height:42px;text-decoration:none}
+.chip[aria-pressed=true]{background:var(--on);color:var(--gold);border-color:var(--gold)}
+.row{display:flex;align-items:center;gap:12px;margin:6px 0}
+.row label{min-width:58px;color:var(--dim);font-size:17px}
+.row output{min-width:54px;text-align:right;font-size:18px}
+input[type=range]{flex:1;accent-color:var(--gold);height:36px}
+input[type=date]{background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font:inherit;font-size:17px;min-height:42px;color-scheme:dark}
+.foot{font-size:15px;color:var(--dim);line-height:1.5;margin:14px 0 0}
+#toast{position:fixed;top:calc(104px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px;font-size:17px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:88vw;text-align:center;z-index:6}
+#toast.show{opacity:1}
+#shot{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;z-index:9}
+#shot.open{display:flex}
+#shot img{max-width:100%;max-height:68dvh;border-radius:12px;border:1px solid var(--line);-webkit-touch-callout:default}
+#shot p{font-size:15px;color:var(--dim);margin:0;text-align:center}
+</style>
+</head>
+<body>
+<canvas id="sky" aria-label="Cielo de El Fuerte. Arrastra para mirar, pellizca para acercar y toca una estrella."></canvas>
+<div id="toast" role="status"></div>
+
+<div id="card" aria-live="polite">
+  <div class="ch"><span id="cName"></span><span id="cIpa" class="ipa"></span></div>
+  <div id="cMeta"></div>
+  <p id="cNote"></p>
+  <div id="cFoot"><span id="cLight"></span><a id="cWiki" target="_blank" rel="noopener">Buscar en Wikipedia</a></div>
+</div>
+
+<nav class="bar">
+  <button class="ib" id="bSet" aria-label="Ajustes"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>
+  <button class="ib" id="bComp" aria-label="Apuntar con el celular" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></button>
+  <button class="ib" id="bRed" aria-label="Modo rojo" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></svg></button>
+  <button class="ib" id="bShot" aria-label="Capturar"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+</nav>
+
+<div id="scrim"></div>
+<section class="sheet" id="sheet" aria-label="Ajustes">
+  <div class="grip"></div>
+  <h3>Fecha</h3>
+  <div class="chips" id="seasons">
+    <button class="chip" data-d="hoy">Esta noche</button>
+    <button class="chip" data-d="03-20">Primavera</button>
+    <button class="chip" data-d="06-21">Verano</button>
+    <button class="chip" data-d="09-22">Otoño</button>
+    <button class="chip" data-d="12-21">Invierno</button>
+    <input type="date" id="date" aria-label="Fecha">
+  </div>
+  <h3>Hora y campo de visión</h3>
+  <div class="row"><label for="hour">Hora</label><input type="range" id="hour" min="12" max="36" step="0.25"><output id="hourOut"></output></div>
+  <div class="row"><label for="fov">Campo</label><input type="range" id="fov" min="35" max="150" step="1" value="100"><output id="fovOut">100°</output></div>
+  <div class="chips">
+    <button class="chip" id="bNow">Ahora</button>
+    <button class="chip" id="bPlay" aria-pressed="false">Animar la noche</button>
+  </div>
+  <h3>Capas</h3>
+  <div class="chips" id="toggles">
+    <button class="chip" data-k="lines" aria-pressed="true">Figuras</button>
+    <button class="chip" data-k="names" aria-pressed="true">Nombres</button>
+    <button class="chip" data-k="ecl" aria-pressed="true">Eclíptica</button>
+    <button class="chip" data-k="mw" aria-pressed="true">Vía Láctea</button>
+    <button class="chip" data-k="drift" aria-pressed="false">Deriva</button>
+    <button class="chip" data-k="wake" aria-pressed="false">Pantalla encendida</button>
+  </div>
+  <div class="chips"><button class="chip" id="bInst" hidden>Instalar en el celular</button></div>
+  <p class="foot" id="foot">Para usarlo sin conexión, ábrelo una vez con internet y agrégalo a tu pantalla de inicio. En iPhone: Compartir → Agregar a inicio.</p>
+  <p class="foot">Posiciones J2000 · Hora de Sinaloa (UTC−7) · 26.42° N, 108.62° O</p>
+</section>
+
+<div id="shot">
+  <img id="shotImg" alt="Captura del cielo de El Fuerte">
+  <div class="chips"><button class="chip" id="sShare" hidden>Compartir</button><a class="chip" id="sSave">Guardar</a><button class="chip" id="sClose">Cerrar</button></div>
+  <p>También puedes mantener presionada la imagen para guardarla.</p>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const D=Math.PI/180,LAT=26.42*D,LON=-108.62,TZ=-7,sP=Math.sin(LAT),cP=Math.cos(LAT);
+/* Declinación magnética aproximada en El Fuerte (grados al este). Ajústala si la brújula se ve desviada. */
+const DECL=9;
+const S=[
+['Sirio',6.752,-16.716,-1.46,8.6,'CMa','ˈsi.ɾjo','Del griego seírios, «abrasador». La más brillante del cielo nocturno.','w'],
+['Canopo',6.399,-52.696,-0.74,310,'Car','ka.ˈno.po','Nombre del piloto de Menelao. Desde aquí roza el horizonte sur en noches de invierno.','w'],
+['Arturo',14.261,19.182,-0.05,36.7,'Boo','aɾ.ˈtu.ɾo','Del griego arktoûros, «guardián de la osa».','o'],
+['Alfa Centauri',14.660,-60.834,-0.27,4.37,'Cen','ˈal.fa sen.ˈtau̯.ɾi','El sistema estelar más cercano al Sol. Desde El Fuerte apenas asoma al sur en primavera.','y'],
+['Vega',18.616,38.784,0.03,25,'Lyr','ˈbe.ɣa','Del árabe al-wāqiʿ, «la que cae»: el águila en picada.','b'],
+['Capella',5.278,45.998,0.08,42.9,'Aur','ka.ˈpe.ʝa','Del latín, «cabrita».','y'],
+['Rigel',5.242,-8.202,0.13,860,'Ori','ˈri.xel','Del árabe rijl, «pie» del gigante.','b'],
+['Proción',7.655,5.225,0.34,11.5,'CMi','pɾo.ˈsjon','Del griego, «antes del perro»: sale antes que Sirio.','w'],
+['Achernar',1.629,-57.237,0.46,139,'Eri','a.t͡ʃeɾ.ˈnaɾ','Del árabe ākhir an-nahr, «fin del río». Muy baja al sur en otoño.','b'],
+['Betelgeuse',5.919,7.407,0.5,550,'Ori','be.tel.ˈɣeu̯.se','Del árabe yad al-jawzāʾ, «mano de Al-Jawzā»; una mala lectura medieval le dio la «B».','r'],
+['Altair',19.846,8.868,0.76,16.7,'Aql','al.ˈtai̯ɾ','Del árabe aṭ-ṭāʾir, «el que vuela».','w'],
+['Aldebarán',4.599,16.509,0.86,65,'Tau','al.de.βa.ˈɾan','Del árabe ad-dabarān, «la que sigue» a las Pléyades.','o'],
+['Antares',16.490,-26.432,0.96,550,'Sco','an.ˈta.ɾes','Del griego anti-Árēs, «rival de Marte», por su color.','r'],
+['Espiga',13.420,-11.161,0.97,250,'Vir','es.ˈpi.ɣa','Del latín spica, la espiga de trigo de la doncella.','b'],
+['Pólux',7.755,28.026,1.14,33.8,'Gem','ˈpo.luks','Del griego Polydeúkēs, el gemelo inmortal.','o'],
+['Fomalhaut',22.961,-29.622,1.16,25,'PsA','fo.ma.ˈlau̯t','Del árabe fam al-ḥūt, «boca del pez».','w'],
+['Deneb',20.690,45.280,1.25,2600,'Cyg','ˈde.neβ','Del árabe dhanab, «cola» del cisne.','w'],
+['Régulo',10.139,11.967,1.35,79,'Leo','ˈre.ɣu.lo','Del latín regulus, «reyecito», diminutivo de rex.','b'],
+['Adhara',6.977,-28.972,1.5,430,'CMa','a.ˈða.ɾa','Del árabe al-ʿadhārā, «las doncellas».','b'],
+['Cástor',7.577,31.888,1.58,51,'Gem','ˈkas.toɾ','El gemelo mortal; en realidad es un sistema de seis estrellas.','w'],
+['Shaula',17.560,-37.104,1.62,570,'Sco','ˈʃau̯.la','Del árabe ash-shawlah, «la cola levantada».','b'],
+['Bellatrix',5.419,6.350,1.64,250,'Ori','be.ˈʝa.tɾiks','Del latín, «guerrera».','b'],
+['Elnath',5.438,28.608,1.65,134,'Tau','el.ˈnat','Del árabe an-naṭḥ, «la que embiste»: el cuerno del toro.','b'],
+['Alnilam',5.604,-1.202,1.69,2000,'Ori','al.ni.ˈlam','Del árabe an-niẓām, «el collar de perlas».','b'],
+['Alnitak',5.679,-1.943,1.77,1260,'Ori','al.ni.ˈtak','Del árabe an-niṭāq, «el cinturón».','b'],
+['Mintaka',5.533,-0.299,2.23,1200,'Ori','min.ˈta.ka','Del árabe al-minṭaqa, «el cinto».','b'],
+['Saiph',5.796,-9.670,2.09,650,'Ori','ˈsai̯f','Del árabe sayf, «espada».','b'],
+['Meissa',5.585,9.934,3.33,1100,'Ori','ˈmei̯.sa','Del árabe al-maysān, «la que brilla».','b'],
+['Dubhe',11.062,61.751,1.79,123,'UMa','ˈdu.βe','Del árabe dubb, «oso».','o'],
+['Merak',11.031,56.382,2.37,80,'UMa','ˈme.ɾak','Del árabe maraqq, «ijada» del oso.','w'],
+['Phecda',11.897,53.695,2.44,83,'UMa','ˈfek.ða','Del árabe fakhidh, «muslo».','w'],
+['Megrez',12.257,57.033,3.31,81,'UMa','ˈme.ɣɾes','Del árabe maghriz, «raíz» de la cola.','w'],
+['Alioth',12.900,55.960,1.77,83,'UMa','a.ˈljot','Quizá del árabe alyat, «cola gruesa».','w'],
+['Mizar',13.399,54.925,2.23,83,'UMa','mi.ˈsaɾ','Del árabe miʾzar, «faja». A su lado se distingue Alcor.','w'],
+['Alkaid',13.792,49.313,1.86,104,'UMa','al.ˈkai̯ð','Del árabe al-qāʾid, «el que guía».','b'],
+['Polaris',2.530,89.264,1.98,433,'UMi','po.ˈla.ɾis','Su altura sobre el horizonte norte (~26°) coincide casi con la latitud de El Fuerte.','y'],
+['Kochab',14.845,74.155,2.08,131,'UMi','ˈko.t͡ʃaβ','De origen incierto.','o'],
+['Pherkad',15.345,71.834,3.0,487,'UMi','feɾ.ˈkað','Del árabe farqad, «becerro».','w'],
+['Yildun',17.537,86.586,4.35,170,'UMi','jil.ˈdun','Del turco yıldız, «estrella».','w'],
+['Épsilon UMi',16.766,82.037,4.2,350,'UMi','','','w'],
+['Zeta UMi',15.734,77.795,4.3,370,'UMi','','','w'],
+['Mirfak',3.405,49.861,1.79,510,'Per','miɾ.ˈfak','Del árabe marfiq, «codo».','w'],
+['Algol',3.136,40.956,2.1,90,'Per','al.ˈɣol','Del árabe raʾs al-ghūl, «cabeza del demonio»; de ghūl viene «gul». Su brillo baja cada 2.9 días.','b'],
+['Wezen',7.140,-26.393,1.83,1600,'CMa','ˈwe.sen','Del árabe wazn, «peso».','y'],
+['Aludra',7.401,-29.303,2.45,2000,'CMa','a.ˈlu.ðɾa','Del árabe al-ʿudhrah, «la doncellez».','b'],
+['Mirzam',6.378,-17.956,1.98,500,'CMa','miɾ.ˈsam','Del árabe al-murzim, «el heraldo» que anuncia a Sirio.','b'],
+['Kaus Australis',18.403,-34.385,1.85,143,'Sgr','ˈkau̯s au̯s.ˈtɾa.lis','Híbrido árabe y latín: «arco del sur».','b'],
+['Kaus Media',18.350,-29.828,2.7,350,'Sgr','ˈkau̯s ˈme.ðja','«Arco del medio».','o'],
+['Kaus Borealis',18.466,-25.422,2.8,78,'Sgr','ˈkau̯s bo.ɾe.ˈa.lis','«Arco del norte».','o'],
+['Alnasl',18.097,-30.424,2.98,97,'Sgr','al.ˈnasl','Del árabe an-naṣl, «la punta» de la flecha.','o'],
+['Nunki',18.921,-26.297,2.05,228,'Sgr','ˈnuŋ.ki','Nombre de origen babilónico.','b'],
+['Ascella',19.044,-29.880,2.6,88,'Sgr','a.ˈse.ʝa','Del latín axilla, «axila».','w'],
+['Tau Sgr',19.116,-27.671,3.3,120,'Sgr','','','o'],
+['Phi Sgr',18.761,-26.991,3.17,230,'Sgr','','','b'],
+['Alhena',6.629,16.399,1.93,109,'Gem','a.ˈle.na','Del árabe al-hanʿah, «la marca».','w'],
+['Mebsuta',6.732,25.131,3.0,840,'Gem','meβ.ˈsu.ta','Del árabe, «extendida».','y'],
+['Tejat',6.383,22.514,2.9,230,'Gem','te.ˈxat','','r'],
+['Wasat',7.335,21.982,3.5,60,'Gem','wa.ˈsat','Del árabe, «el medio».','w'],
+['Alfard',9.460,-8.659,1.98,180,'Hya','al.ˈfaɾð','Del árabe al-fard, «la solitaria».','o'],
+['Hamal',2.120,23.463,2.0,66,'Ari','a.ˈmal','Del árabe al-ḥamal, «el cordero».','o'],
+['Sheratan',1.911,20.808,2.64,60,'Ari','ʃe.ɾa.ˈtan','Del árabe, «los dos signos».','w'],
+['Diphda',0.727,-17.987,2.04,96,'Cet','ˈdif.ða','Del árabe ḍifdaʿ, «rana».','o'],
+['Menkar',3.038,4.090,2.5,250,'Cet','meŋ.ˈkaɾ','Del árabe, «nariz».','r'],
+['Alpheratz',0.140,29.091,2.06,97,'And','al.fe.ˈɾats','Del árabe surrat al-faras, «ombligo del caballo».','b'],
+['Mirach',1.163,35.621,2.05,197,'And','mi.ˈɾak','Del árabe, «cintura».','r'],
+['Almach',2.065,42.330,2.1,350,'And','al.ˈmak','Del árabe ʿanāq al-arḍ, un pequeño felino del desierto.','o'],
+['Rasalhague',17.582,12.560,2.07,49,'Oph','ra.sa.ˈla.ɣe','Del árabe raʾs al-ḥawwāʾ, «cabeza del encantador de serpientes».','w'],
+['Sabik',17.173,-15.725,2.43,88,'Oph','sa.ˈβik','Del árabe, «el que precede».','w'],
+['Denébola',11.818,14.572,2.14,36,'Leo','de.ˈne.βo.la','Del árabe dhanab al-asad, «cola del león».','w'],
+['Algieba',10.333,19.842,2.08,130,'Leo','al.ˈxje.βa','Del árabe al-jabha, «la frente».','o'],
+['Zosma',11.235,20.524,2.56,58,'Leo','ˈsos.ma','Del griego, «cinturón».','w'],
+['Chertan',11.237,15.430,3.33,165,'Leo','t͡ʃeɾ.ˈtan','','w'],
+['Eta Leo',10.122,16.763,3.5,1270,'Leo','','','w'],
+['Adhafera',10.278,23.417,3.4,260,'Leo','a.ða.ˈfe.ɾa','Del árabe, «la trenza» de la melena.','w'],
+['Rasalas',9.879,26.007,3.9,124,'Leo','ra.ˈsa.las','Del árabe, «cabeza del león».','o'],
+['Épsilon Leo',9.764,23.774,2.98,250,'Leo','','','y'],
+['Acrab',16.091,-19.805,2.62,400,'Sco','ˈa.kɾaβ','Del árabe al-ʿaqrab, «el escorpión».','b'],
+['Dschubba',16.006,-22.622,2.29,490,'Sco','ˈd͡ʒu.βa','Del árabe jabhah, «frente».','b'],
+['Pi Sco',15.981,-26.114,2.89,590,'Sco','','','b'],
+['Tau Sco',16.598,-28.216,2.82,470,'Sco','','','b'],
+['Larawag',16.836,-34.293,2.29,64,'Sco','la.ɾa.ˈwaɣ','Nombre tomado del wardaman, lengua aborigen de Australia.','o'],
+['Mu Sco',16.864,-38.047,3.0,500,'Sco','','','b'],
+['Eta Sco',17.203,-43.239,3.33,73,'Sco','','','w'],
+['Sargas',17.622,-42.998,1.86,300,'Sco','ˈsaɾ.ɣas','Nombre de origen sumerio.','w'],
+['Kappa Sco',17.708,-39.030,2.39,480,'Sco','','','b'],
+['Caph',0.153,59.150,2.28,55,'Cas','ˈkaf','Del árabe kaff, «palma de la mano».','w'],
+['Schedar',0.675,56.537,2.24,228,'Cas','ʃe.ˈðaɾ','Del árabe ṣadr, «pecho».','o'],
+['Navi',0.945,60.717,2.15,550,'Cas','ˈna.βi','Es «Ivan» al revés: apodo puesto por el astronauta Gus Grissom, cuyo segundo nombre era Ivan.','b'],
+['Ruchbah',1.430,60.235,2.68,99,'Cas','ˈruk.βa','Del árabe rukbah, «rodilla».','w'],
+['Segin',1.907,63.670,3.35,410,'Cas','se.ˈɣin','','b'],
+['Sadr',20.370,40.257,2.23,1800,'Cyg','ˈsa.ðɾ','Del árabe ṣadr, «pecho» del cisne.','y'],
+['Gienah',20.770,33.970,2.48,72,'Cyg','ˈxje.na','Del árabe janāḥ, «ala».','o'],
+['Albireo',19.512,27.960,3.05,430,'Cyg','al.ˈβi.ɾe.o','Nombre nacido de una cadena de errores de traducción entre griego, árabe y latín.','o'],
+['Fawaris',19.750,45.131,2.87,165,'Cyg','fa.ˈwa.ɾis','Del árabe, «los jinetes».','b'],
+['Sheliak',18.835,33.363,3.5,960,'Lyr','ʃe.ˈljak','Del árabe, «arpa».','b'],
+['Sulafat',18.983,32.690,3.25,620,'Lyr','su.la.ˈfat','Del árabe, «tortuga».','b'],
+['Zeta Lyr',18.746,37.605,4.3,150,'Lyr','','','w'],
+['Delta Lyr',18.908,36.899,4.3,900,'Lyr','','','r'],
+['Tarazed',19.771,10.613,2.72,395,'Aql','ta.ɾa.ˈsed','Del persa, parte de «la balanza del halcón».','o'],
+['Alshain',19.922,6.407,3.71,45,'Aql','al.ˈʃai̯n','','w'],
+['Markab',23.079,15.205,2.48,133,'Peg','ˈmaɾ.kaβ','Del árabe, «silla de montar».','b'],
+['Scheat',23.063,28.083,2.42,196,'Peg','ˈʃe.at','Del árabe sāq, «pierna».','r'],
+['Algenib',0.221,15.184,2.83,390,'Peg','al.ˈxe.niβ','Del árabe, «el costado».','b'],
+['Enif',21.736,9.875,2.38,690,'Peg','ˈe.nif','Del árabe anf, «nariz» del caballo.','o'],
+['Homam',22.691,10.831,3.4,210,'Peg','','','b'],
+['Biham',22.170,6.198,3.5,90,'Peg','','','w'],
+['Izar',14.750,27.074,2.37,200,'Boo','i.ˈsaɾ','Del árabe, «faja».','o'],
+['Muphrid',13.911,18.398,2.68,37,'Boo','ˈmu.fɾid','Del árabe, «el solitario».','w'],
+['Seginus',14.535,38.308,3.0,85,'Boo','','','w'],
+['Nekkar',15.032,40.391,3.5,225,'Boo','ne.ˈkaɾ','','y'],
+['Delta Boo',15.258,33.315,3.47,120,'Boo','','','y'],
+['Rho Boo',14.531,30.371,3.6,150,'Boo','','','o'],
+['Alphecca',15.578,26.715,2.2,75,'CrB','al.ˈfe.ka','Del árabe, «la brillante del plato roto».','w'],
+['Menkalinan',5.992,44.948,1.9,81,'Aur','meŋ.ka.li.ˈnan','Del árabe, «hombro del auriga».','w'],
+['Mahasim',5.995,37.213,2.6,166,'Aur','','','b'],
+['Hassaleh',4.950,33.166,2.69,500,'Aur','a.sa.ˈle','','o'],
+['Ain',4.477,19.180,3.53,147,'Tau','ˈai̯n','Del árabe, «ojo» del toro.','o'],
+['Gamma Tau',4.330,15.628,3.65,154,'Tau','','','o'],
+['Delta Tau',4.382,17.543,3.76,153,'Tau','','','o'],
+['Zeta Tau',5.627,21.143,3.0,440,'Tau','','','b'],
+['Alcyone',3.791,24.105,2.87,444,'Tau','al.ˈsi.o.ne','La más brillante de las Pléyades, a quienes muchos pueblos llaman «las siete cabrillas».','b'],
+['Atlas',3.819,24.053,3.6,440,'Tau','','','b'],
+['Electra',3.747,24.113,3.7,440,'Tau','','','b'],
+['Maia',3.764,24.367,3.9,440,'Tau','','','b'],
+['Mérope',3.772,23.948,4.1,440,'Tau','','','b'],
+['Taygeta',3.754,24.467,4.3,440,'Tau','','','b'],
+['Deneb Algedi',21.784,-16.127,2.85,39,'Cap','ˈde.neβ al.ˈxe.ði','Del árabe, «cola de la cabra».','w'],
+['Sadalsuud',21.526,-5.571,2.9,540,'Aqr','sa.ðal.ˈsuð','Del árabe, «la suerte de las suertes».','y'],
+['Sadalmelik',22.096,-0.320,2.95,520,'Aqr','sa.ðal.ˈme.lik','Del árabe, «la suerte del rey».','y']
+];
+const CON={Ori:['Orión','Orion'],CMa:['Can Mayor','Canis Maior'],CMi:['Can Menor','Canis Minor'],Car:['Quilla','Carina'],Boo:['Boyero','Bootes'],Cen:['Centauro','Centaurus'],Lyr:['Lira','Lyra'],Aur:['Auriga','Auriga'],Eri:['Erídano','Eridanus'],Aql:['Águila','Aquila'],Tau:['Tauro','Taurus'],Sco:['Escorpio','Scorpius'],Vir:['Virgo','Virgo'],Gem:['Géminis','Gemini'],PsA:['Pez Austral','Piscis Austrinus'],Cyg:['Cisne','Cygnus'],Leo:['Leo','Leo'],Sgr:['Sagitario','Sagittarius'],UMa:['Osa Mayor','Ursa Maior'],UMi:['Osa Menor','Ursa Minor'],Per:['Perseo','Perseus'],Cas:['Casiopea','Cassiopeia'],Peg:['Pegaso','Pegasus'],And:['Andrómeda','Andromeda'],Ari:['Aries','Aries'],Cet:['Ballena','Cetus'],Oph:['Ofiuco','Ophiuchus'],Hya:['Hidra','Hydra'],CrB:['Corona Boreal','Corona Borealis'],Cap:['Capricornio','Capricornus'],Aqr:['Acuario','Aquarius']};
+const L={
+Ori:[['Betelgeuse','Meissa','Bellatrix'],['Betelgeuse','Alnitak','Alnilam','Mintaka','Bellatrix'],['Alnitak','Saiph'],['Mintaka','Rigel']],
+CMa:[['Mirzam','Sirio','Wezen','Aludra'],['Wezen','Adhara']],
+UMa:[['Dubhe','Merak','Phecda','Megrez','Dubhe'],['Megrez','Alioth','Mizar','Alkaid']],
+UMi:[['Polaris','Yildun','Épsilon UMi','Zeta UMi','Kochab','Pherkad','Zeta UMi']],
+Cas:[['Caph','Schedar','Navi','Ruchbah','Segin']],
+Cyg:[['Deneb','Sadr','Albireo'],['Fawaris','Sadr','Gienah']],
+Lyr:[['Vega','Zeta Lyr','Sheliak','Sulafat','Delta Lyr','Zeta Lyr']],
+Aql:[['Tarazed','Altair','Alshain']],
+Sco:[['Acrab','Dschubba','Pi Sco'],['Dschubba','Antares','Tau Sco','Larawag','Mu Sco','Eta Sco','Sargas','Kappa Sco','Shaula']],
+Sgr:[['Alnasl','Kaus Media','Kaus Australis','Alnasl'],['Kaus Media','Kaus Borealis','Phi Sgr','Kaus Media'],['Phi Sgr','Nunki','Tau Sgr','Ascella','Phi Sgr'],['Ascella','Kaus Australis']],
+Leo:[['Régulo','Eta Leo','Algieba','Adhafera','Rasalas','Épsilon Leo'],['Algieba','Zosma','Denébola','Chertan','Régulo'],['Zosma','Chertan']],
+Gem:[['Cástor','Pólux'],['Cástor','Mebsuta','Tejat'],['Pólux','Wasat','Alhena']],
+Tau:[['Elnath','Ain','Delta Tau','Gamma Tau','Aldebarán','Zeta Tau']],
+Aur:[['Capella','Menkalinan','Mahasim','Elnath','Hassaleh','Capella']],
+Peg:[['Markab','Scheat','Alpheratz','Algenib','Markab','Homam','Biham','Enif']],
+And:[['Alpheratz','Mirach','Almach']],
+Boo:[['Arturo','Izar','Delta Boo','Nekkar','Seginus','Rho Boo','Arturo'],['Arturo','Muphrid']],
+Per:[['Mirfak','Algol']],Ari:[['Hamal','Sheratan']]};
+
+let seed=11;function rnd(){seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
+const COL={w:'#f4f1e8',b:'#d4e2ff',y:'#fff0c4',o:'#ffd6a0',r:'#ffb08a'};
+const st=S.map(s=>({n:s[0],ra:s[1]*15*D,sd:Math.sin(s[2]*D),cd:Math.cos(s[2]*D),m:s[3],ly:s[4],c:s[5],ipa:s[6],note:s[7],col:s[8],ph:rnd()*6.28}));
+const B={};st.forEach(s=>B[s.n]=s);
+const LM={};for(const k in L){const set=new Set();L[k].forEach(ch=>ch.forEach(n=>set.add(n)));LM[k]=[...set].map(n=>B[n])}
+const bg=[];
+for(let i=0;i<650;i++){const de=Math.asin(2*rnd()-1);bg.push({ra:rnd()*6.2832,sd:Math.sin(de),cd:Math.cos(de),m:4.4+rnd()*1.8})}
+const aG=192.85948*D,dG=27.12825*D,lN=122.93192*D;
+let made=0;while(made<1800){const l=rnd()*6.2832;if(rnd()>0.35+0.65*Math.pow(Math.cos(l/2),2))continue;const g=Math.sqrt(-2*Math.log(rnd()+1e-9))*Math.cos(6.2832*rnd());const b=g*(4+3*rnd())*D;const sd=Math.sin(dG)*Math.sin(b)+Math.cos(dG)*Math.cos(b)*Math.cos(lN-l);const ra=aG+Math.atan2(Math.cos(b)*Math.sin(lN-l),Math.cos(dG)*Math.sin(b)-Math.sin(dG)*Math.cos(b)*Math.cos(lN-l));bg.push({ra,sd,cd:Math.sqrt(1-sd*sd),m:5+rnd()*1.5,mw:1});made++}
+const eps=23.439*D;
+function ecl(lam){const de=Math.asin(Math.sin(eps)*Math.sin(lam));return{ra:Math.atan2(Math.cos(eps)*Math.sin(lam),Math.cos(lam)),sd:Math.sin(de),cd:Math.cos(de)}}
+const EC=[];for(let k=0;k<=360;k+=3)EC.push(ecl(k*D));
+const ZOD=[['Piscis',8],['Aries',38],['Tauro',68],['Géminis',98],['Cáncer',125],['Leo',150],['Virgo',192],['Libra',228],['Escorpio',241],['Ofiuco',256],['Sagitario',282],['Capricornio',313],['Acuario',336]].map(z=>Object.assign({n:z[0]},ecl(z[1]*D)));
+const CARD=['N','NE','E','SE','S','SO','O','NO'],CIPA=['ˈnoɾ.te','no.ˈɾes.te','ˈes.te','su.ˈɾes.te','suɾ','su.ɾo.ˈes.te','o.ˈes.te','no.ɾo.ˈes.te'],DIR=['norte','noreste','este','sureste','sur','suroeste','oeste','noroeste'];
+const MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const CACTI=[[150,2.2,0],[163,1.4,1],[208,2.8,0],[236,1.6,1],[292,2.4,0],[318,1.3,1],[12,1.8,0]];
+const IPA='/ˈsje.lo · ˈno.t͡ʃe · es.ˈtɾe.ʝa · kons.te.la.ˈsjon · ˈβi.a ˈlak.te.a · el ˈfweɾ.te · si.na.ˈlo.a · o.ˈɾi.son.te · ˈlu.s/   ';
+const SERIF='"Cormorant Garamond", Georgia, serif',IPAF='"Noto Serif", "Charis SIL", serif';
+
+const cv=$('sky'),ctx=cv.getContext('2d');
+const probe=document.createElement('div');
+probe.style.cssText='position:fixed;top:0;left:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+document.body.appendChild(probe);
+let W=360,H=640,dpr=1,SA={t:0,b:0,l:0,r:0};
+function resize(){W=innerWidth;H=innerHeight;dpr=Math.min(2,devicePixelRatio||1);cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.width=W+'px';cv.style.height=H+'px';const cs=getComputedStyle(probe);SA={t:parseFloat(cs.paddingTop)||0,r:parseFloat(cs.paddingRight)||0,b:parseFloat(cs.paddingBottom)||0,l:parseFloat(cs.paddingLeft)||0}}
+resize();addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,200));
+
+const pad=n=>String(n).padStart(2,'0');
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function sinNow(){const d=new Date(Date.now()+TZ*3600e3);let h=d.getUTCHours()+d.getUTCMinutes()/60,y=d.getUTCFullYear(),m=d.getUTCMonth(),dd=d.getUTCDate();if(h<12){const p=new Date(Date.UTC(y,m,dd-1));y=p.getUTCFullYear();m=p.getUTCMonth();dd=p.getUTCDate();h+=24}return{date:y+'-'+pad(m+1)+'-'+pad(dd),h}}
+const n0=sinNow();
+let dateStr=n0.date,hour=(n0.h>=18.5&&n0.h<=30)?n0.h:21,fov=100,az0=60,alt0=38;
+const opt={lines:1,names:1,ecl:1,mw:1,drift:0,wake:0};
+let play=0,compass=0,sel=null,target=null,frame=0,hits=[],tAz=0,tAlt=30,drag=null,pinch=null,moved=0,shown=undefined;
+
+function msUTC(){const[y,m,d]=dateStr.split('-').map(Number);return Date.UTC(y,m-1,d)+(hour-TZ)*3600e3}
+function fmtH(h){const tm=Math.round(h*60);return pad(Math.floor(tm/60)%24)+':'+pad(tm%60)}
+function hv(o,lst){const h=lst-o.ra,sH=Math.sin(h),cH=Math.cos(h);return[-o.cd*sH,o.sd*cP-o.cd*cH*sP,sP*o.sd+cP*o.cd*cH]}
+function aa(az,al){az*=D;al*=D;const c=Math.cos(al);return[c*Math.sin(az),c*Math.cos(az),Math.sin(al)]}
+function hz(az){const e=Math.exp(-Math.pow((((az-95)%360+540)%360-180)/42,2));const q=az*D;return Math.max(.35,.55+4.2*e+.45*Math.sin(q*5+1)*(.35+e)+.22*Math.sin(q*13+.5)+.15*Math.sin(q*29))}
+let f,r,u,sc,cx,cy;
+function cam(){const A=az0*D,a=alt0*D;f=[Math.cos(a)*Math.sin(A),Math.cos(a)*Math.cos(A),Math.sin(a)];r=[Math.cos(A),-Math.sin(A),0];u=[-Math.sin(A)*Math.sin(a),-Math.cos(A)*Math.sin(a),Math.cos(a)];sc=(W/2)/(2*Math.tan(fov*D/4));cx=W/2;cy=SA.t+(H-SA.t-SA.b)*0.46}
+function P(v){const d=v[0]*f[0]+v[1]*f[1]+v[2]*f[2];if(d<-0.7)return null;const k=2/(1+d);return[cx+k*(v[0]*r[0]+v[1]*r[1])*sc,cy-k*(v[0]*u[0]+v[1]*u[1]+v[2]*u[2])*sc,d]}
+function on(p,m){m=m||20;return p&&p[0]>-m&&p[0]<W+m&&p[1]>-m&&p[1]<H+m}
+function azOf(v){return(Math.atan2(v[0],v[1])/D+360)%360}
+function mix(a,b,t){const ch=s=>{const n=parseInt(s.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255]};const A=ch(a),Bc=ch(b);return'rgb('+A.map((x,i)=>Math.round(x+(Bc[i]-x)*t)).join(',')+')'}
+function sunAlt(j,lst){const n=j-2451545,Lm=280.46+0.9856474*n,g=(357.528+0.9856003*n)*D,lam=(Lm+1.915*Math.sin(g)+0.02*Math.sin(2*g))*D;return Math.asin(hv(ecl(lam),lst)[2])/D}
+function star4(x,y,s){ctx.beginPath();ctx.moveTo(x,y-s);ctx.quadraticCurveTo(x,y,x+s,y);ctx.quadraticCurveTo(x,y,x,y+s);ctx.quadraticCurveTo(x,y,x-s,y);ctx.quadraticCurveTo(x,y,x,y-s);ctx.fill()}
+
+function draw(t){
+cam();
+const ms=msUTC(),j=ms/864e5+2440587.5;
+const lst=((((280.46061837+360.98564736629*(j-2451545))%360)+LON)%360)*D;
+const sa=sunAlt(j,lst);
+let sky;if(sa<-18)sky='#070b1c';else if(sa<-6)sky=mix('#070b1c','#1c2c55',(sa+18)/12);else sky=mix('#1c2c55','#6f93c8',clamp((sa+6)/12,0,1));
+const red=document.body.classList.contains('red');
+const pal=red?{sky:'#120405',star:'#ff7a68',gold:'#c8463a',text:'#ff9a88',ground:'#070102',mw:'#ff5a48'}:{sky,star:'#f4f1e8',gold:'#d9b56a',text:'#eadcbc',ground:'#04060a',mw:'#c9d6ff'};
+const lim=6.6-6.5*clamp((sa+18)/16,0,1);
+const T0=SA.t,B0=H-SA.b;
+ctx.setTransform(dpr,0,0,dpr,0,0);
+ctx.globalAlpha=1;ctx.fillStyle=pal.sky;ctx.fillRect(0,0,W,H);
+for(const o of bg){if(o.mw&&!opt.mw)continue;if(o.m>lim)continue;const v=hv(o,lst);if(v[2]<-0.02)continue;const p=P(v);if(!on(p,2))continue;ctx.globalAlpha=(o.mw?0.3:0.55)*clamp((lim-o.m)/1.5,0.15,1);ctx.fillStyle=o.mw?pal.mw:pal.star;const s=o.mw?1.1:1.3;ctx.fillRect(p[0],p[1],s,s)}
+if(opt.ecl){ctx.globalAlpha=0.45;ctx.strokeStyle=pal.gold;ctx.lineWidth=0.8;ctx.setLineDash([4,5]);ctx.beginPath();let pv=null;for(const e of EC){const p=P(hv(e,lst));if(p&&pv&&Math.abs(p[0]-pv[0])<W&&Math.abs(p[1]-pv[1])<H)ctx.lineTo(p[0],p[1]);else if(p)ctx.moveTo(p[0],p[1]);pv=p}ctx.stroke();ctx.setLineDash([])}
+if(opt.lines){ctx.globalAlpha=0.5;ctx.strokeStyle=pal.gold;ctx.lineWidth=0.9;ctx.beginPath();for(const k in L)for(const ch of L[k]){let pv=null;for(const n of ch){const p=P(hv(B[n],lst));if(p&&pv&&Math.hypot(p[0]-pv[0],p[1]-pv[1])<W){ctx.moveTo(pv[0],pv[1]);ctx.lineTo(p[0],p[1])}pv=p}}ctx.stroke()}
+hits=[];const zf=Math.sqrt(clamp(100/fov,.7,2.2));
+for(const s of st){if(s.m>lim+0.5)continue;const v=hv(s,lst);if(v[2]<0)continue;const p=P(v);if(!on(p))continue;const az=azOf(v),al=Math.asin(v[2])/D;const rr=Math.max(1,3.6-.62*s.m)*zf;const tw=.82+.18*Math.sin(t*.0018+s.ph);ctx.globalAlpha=tw*clamp((lim+0.5-s.m)/1.5,.25,1);ctx.fillStyle=red?pal.star:COL[s.col];ctx.beginPath();ctx.arc(p[0],p[1],rr,0,6.2832);ctx.fill();
+if(s.m<1.2){ctx.globalAlpha*=.55;ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=.7;const q=rr*3.2;ctx.beginPath();ctx.moveTo(p[0]-q,p[1]);ctx.lineTo(p[0]+q,p[1]);ctx.moveTo(p[0],p[1]-q);ctx.lineTo(p[0],p[1]+q);ctx.stroke()}
+if(al>hz(az))hits.push({s,x:p[0],y:p[1],az,al,rr})}
+ctx.globalAlpha=1;ctx.fillStyle=pal.ground;const RG=[-1.5,-5,-12,-22,-35,-50,-65,-80,-89];
+for(let az=0;az<360;az+=4){const a2=az+4.4,t1=P(aa(az,hz(az))),t2=P(aa(a2,hz(a2)));if(!t1||!t2)continue;const R=[],Lf=[];for(const g of RG){const p=P(aa(a2,g));if(!p)break;R.push(p)}for(const g of RG){const p=P(aa(az,g));if(!p)break;Lf.push(p)}ctx.beginPath();ctx.moveTo(t1[0],t1[1]);for(let a=az+1.1;a<a2;a+=1.1){const p=P(aa(a,hz(a)));if(p)ctx.lineTo(p[0],p[1])}ctx.lineTo(t2[0],t2[1]);R.forEach(p=>ctx.lineTo(p[0],p[1]));Lf.reverse().forEach(p=>ctx.lineTo(p[0],p[1]));ctx.closePath();ctx.fill()}
+ctx.strokeStyle=pal.ground;ctx.lineCap='round';ctx.lineJoin='round';
+for(const c of CACTI){const h0=hz(c[0]),b=P(aa(c[0],h0-0.4)),tp=P(aa(c[0],h0+c[1]));if(!on(b,80)||!tp)continue;const dx=tp[0]-b[0],dy=tp[1]-b[1],hh=Math.hypot(dx,dy);if(hh<5)continue;const w=hh*.15;ctx.save();ctx.translate(b[0],b[1]);ctx.rotate(Math.atan2(dx,-dy));ctx.lineWidth=w;ctx.beginPath();if(c[2]){for(const[x,y]of[[-w*1.1,.75],[0,1],[w*1.1,.85],[w*2,.6]]){ctx.moveTo(x,0);ctx.lineTo(x,-hh*y)}}else{ctx.moveTo(0,0);ctx.lineTo(0,-hh);ctx.moveTo(0,-hh*.42);ctx.lineTo(-w*1.6,-hh*.42);ctx.lineTo(-w*1.6,-hh*.74);ctx.moveTo(0,-hh*.58);ctx.lineTo(w*1.5,-hh*.58);ctx.lineTo(w*1.5,-hh*.88)}ctx.stroke();ctx.restore()}
+ctx.globalAlpha=.6;ctx.strokeStyle=pal.gold;ctx.lineWidth=.8;ctx.beginPath();let pv=null;for(let a=0;a<=360;a+=1.5){const p=P(aa(a,hz(a)));if(p&&pv&&Math.abs(p[0]-pv[0])<W/2)ctx.lineTo(p[0],p[1]);else if(p)ctx.moveTo(p[0],p[1]);pv=p}ctx.stroke();
+ctx.textAlign='center';
+for(let i=0;i<8;i++){const p=P(aa(i*45,-3.2));if(!on(p,-10))continue;ctx.globalAlpha=.9;ctx.fillStyle=pal.gold;ctx.font=(i%2?'500 15px ':'500 19px ')+SERIF;ctx.fillText(CARD[i],p[0],p[1]);ctx.globalAlpha=.5;ctx.font='12px '+IPAF;ctx.fillText('/'+CIPA[i]+'/',p[0],p[1]+15)}
+if(opt.ecl){ctx.font='italic 15px '+SERIF;ctx.fillStyle=pal.gold;for(const z of ZOD){const v=hv(z,lst);if(v[2]<.03)continue;const p=P(v);if(!on(p,-10))continue;if(Math.asin(v[2])/D<hz(azOf(v))+1)continue;ctx.globalAlpha=.55;ctx.fillText(z.n,p[0],p[1]-7)}}
+if(opt.names){ctx.font='italic 17px '+SERIF;ctx.fillStyle=pal.gold;for(const k in LM){let x=0,y=0,z=0;for(const s of LM[k]){const v=hv(s,lst);x+=v[0];y+=v[1];z+=v[2]}const n=Math.hypot(x,y,z);const v=[x/n,y/n,z/n];if(v[2]<.08)continue;const p=P(v);if(!on(p,-20))continue;ctx.globalAlpha=.5;ctx.fillText(CON[k][0],p[0],p[1]+18)}
+ctx.textAlign='left';ctx.font='14px '+SERIF;ctx.fillStyle=pal.text;const ml=fov>110?1.6:2.15;for(const h of hits){if(h.s.m>ml&&h.s.n!=='Alcyone')continue;ctx.globalAlpha=.85;ctx.fillText(h.s.n==='Alcyone'?'Pléyades':h.s.n,h.x+h.rr+4,h.y-3)}}
+target=null;if(sel)target=hits.find(h=>h.s===sel)||null;
+if(!target){let best=50;for(const h of hits){const d=Math.hypot(h.x-cx,h.y-cy);if(d<best){best=d;target=h}}}
+if(target){ctx.globalAlpha=.85;ctx.strokeStyle=pal.gold;ctx.lineWidth=1;ctx.beginPath();ctx.arc(target.x,target.y,target.rr+8,0,6.2832);ctx.stroke()}
+ctx.globalAlpha=.55;ctx.strokeStyle=pal.gold;ctx.lineWidth=.8;ctx.beginPath();ctx.arc(cx,cy,15,0,6.2832);for(const[a,b]of[[0,-1],[0,1],[-1,0],[1,0]]){ctx.moveTo(cx+a*19,cy+b*19);ctx.lineTo(cx+a*28,cy+b*28)}ctx.stroke();
+ctx.globalAlpha=.45;ctx.strokeRect(5.5,T0+5.5,W-11,B0-T0-11);ctx.globalAlpha=.3;ctx.strokeRect(10.5,T0+26.5,W-21,B0-T0-53);
+ctx.globalAlpha=.7;ctx.fillStyle=pal.gold;for(const[x,y]of[[10.5,T0+26.5],[W-10.5,T0+26.5],[10.5,B0-26.5],[W-10.5,B0-26.5]])star4(x,y,7);
+ctx.font='12px '+IPAF;const tw2=ctx.measureText(IPA).width||400;ctx.globalAlpha=.3;ctx.textAlign='left';
+for(const[yb,dir]of[[T0+20,1],[B0-11,-1]]){ctx.save();ctx.beginPath();ctx.rect(20,yb-14,W-40,20);ctx.clip();const off=((t*.012*dir)%tw2+tw2)%tw2;for(let x=-off;x<W;x+=tw2)ctx.fillText(IPA,x,yb);ctx.restore()}
+const sd=new Date(ms+TZ*3600e3);
+ctx.globalAlpha=.9;ctx.fillStyle=pal.text;ctx.textAlign='left';ctx.font='500 18px '+SERIF;ctx.fillText('El Fuerte, Sinaloa',18+SA.l,T0+52);ctx.font='14px '+SERIF;ctx.globalAlpha=.65;ctx.fillText('26.42° N · 108.62° O',18+SA.l,T0+70);
+ctx.textAlign='right';ctx.globalAlpha=.9;ctx.font='500 18px '+SERIF;ctx.fillText(sd.getUTCDate()+' '+MES[sd.getUTCMonth()]+' '+sd.getUTCFullYear(),W-18-SA.r,T0+52);ctx.font='14px '+SERIF;ctx.globalAlpha=.65;ctx.fillText(fmtH(hour)+(sa>-18?' · crepúsculo':''),W-18-SA.r,T0+70);
+ctx.textAlign='center';ctx.globalAlpha=.8;ctx.font='italic 16px '+SERIF;const az=((az0%360)+360)%360;ctx.fillText('mirando al '+DIR[Math.round(az/45)%8]+' · '+Math.round(alt0)+'° de altura',W/2,T0+96);
+ctx.globalAlpha=1;
+}
+
+function lyTxt(ly){return ly<100?ly.toFixed(1):Math.round(ly).toLocaleString('es-MX')}
+function info(){const card=$('card');if(!target){card.classList.remove('show');shown=null;return}
+card.classList.add('show');const s=target.s,cn=CON[s.c];
+if(shown!==s){$('cName').textContent=s.n;$('cIpa').textContent=s.ipa?'/'+s.ipa+'/':'';$('cNote').textContent=s.note;$('cNote').hidden=!s.note;
+const yr=Math.round(new Date(msUTC()).getUTCFullYear()-s.ly);$('cLight').textContent='Su luz salió hacia '+(yr>0?'el año '+yr:'el '+Math.abs(yr)+' a. C.');
+$('cWiki').href='https://es.wikipedia.org/w/index.php?search='+encodeURIComponent(s.n+' estrella');shown=s}
+$('cMeta').textContent='en '+cn[0]+(cn[0]!==cn[1]?' (lat. '+cn[1]+')':'')+' · ≈ '+lyTxt(s.ly)+' años luz · mag '+s.m.toFixed(1)+' · '+Math.round(target.al)+'° '+CARD[Math.round(target.az/45)%8]}
+
+let tt;function toast(m,ms){const e=$('toast');e.textContent=m;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),ms||3200)}
+function syncUI(){$('date').value=dateStr;$('hour').value=hour;$('hourOut').textContent=fmtH(hour);const tn=sinNow().date,md=dateStr.slice(5);document.querySelectorAll('#seasons .chip').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.d==='hoy'?dateStr===tn:b.dataset.d===md)));document.querySelectorAll('#toggles .chip').forEach(b=>b.setAttribute('aria-pressed',String(!!opt[b.dataset.k])))}
+document.querySelectorAll('#seasons .chip').forEach(b=>b.onclick=()=>{const tn=sinNow().date;dateStr=b.dataset.d==='hoy'?tn:tn.slice(0,4)+'-'+b.dataset.d;syncUI()});
+$('date').onchange=e=>{if(e.target.value){dateStr=e.target.value;syncUI()}};
+$('hour').oninput=e=>{hour=+e.target.value;$('hourOut').textContent=fmtH(hour)};
+function setFov(v){fov=clamp(v,35,150);$('fov').value=Math.round(fov);$('fovOut').textContent=Math.round(fov)+'°'}
+$('fov').oninput=e=>setFov(+e.target.value);
+$('bNow').onclick=()=>{const n=sinNow();dateStr=n.date;hour=n.h;syncUI()};
+$('bPlay').onclick=function(){play^=1;this.setAttribute('aria-pressed',String(!!play))};
+
+let wl=null;
+async function setWake(v){try{if(v){if(!('wakeLock' in navigator))throw 0;wl=await navigator.wakeLock.request('screen')}else if(wl){await wl.release();wl=null}}catch(e){opt.wake=0;syncUI();toast('Tu navegador no permite mantener la pantalla encendida.')}}
+document.addEventListener('visibilitychange',()=>{if(opt.wake&&document.visibilityState==='visible')setWake(1)});
+document.querySelectorAll('#toggles .chip').forEach(b=>b.onclick=()=>{const k=b.dataset.k;opt[k]^=1;syncUI();if(k==='wake')setWake(opt.wake)});
+
+const sheet=$('sheet'),scrim=$('scrim');
+function openSheet(v){sheet.classList.toggle('open',v);scrim.classList.toggle('open',v)}
+$('bSet').onclick=()=>openSheet(!sheet.classList.contains('open'));
+scrim.onclick=()=>openSheet(false);
+
+$('bRed').onclick=function(){const v=document.body.classList.toggle('red');this.setAttribute('aria-pressed',String(v));document.querySelector('meta[name=theme-color]').content=v?'#120405':'#070b1c'};
+
+function oriView(alpha,beta,gamma){const a=alpha*D,b=beta*D,g=gamma*D;const E=-(Math.sin(g)*Math.cos(a)+Math.cos(g)*Math.sin(b)*Math.sin(a));const N=-(Math.sin(g)*Math.sin(a)-Math.cos(g)*Math.sin(b)*Math.cos(a));const U=-Math.cos(g)*Math.cos(b);return{az:(Math.atan2(E,N)/D+DECL+360)%360,alt:Math.asin(clamp(U,-1,1))/D}}
+let absSeen=0,got=0,listening=0;
+function onOri(e){let al=null;if(e.type==='deviceorientationabsolute'){absSeen=1;al=e.alpha}else if(e.webkitCompassHeading!=null){al=360-e.webkitCompassHeading}else if(e.absolute&&!absSeen){al=e.alpha}if(al==null||e.beta==null||e.gamma==null)return;got=1;const v=oriView(al,e.beta,e.gamma);tAz=v.az;tAlt=v.alt}
+function stopComp(){compass=0;$('bComp').setAttribute('aria-pressed','false')}
+$('bComp').onclick=async function(){if(compass){stopComp();return}
+try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){const p=await DeviceOrientationEvent.requestPermission();if(p!=='granted')throw 0}
+if(!listening){addEventListener('deviceorientationabsolute',onOri,true);addEventListener('deviceorientation',onOri,true);listening=1}
+compass=1;this.setAttribute('aria-pressed','true');toast('Apunta la parte de atrás del celular al cielo.');
+setTimeout(()=>{if(compass&&!got){stopComp();toast('No llegó la orientación del celular. Arrastra para mirar.')}},2000)}
+catch(e){toast('No se pudo activar la brújula. Arrastra para mirar.')}};
+
+const ptr=new Map();
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr.size===1){drag={x:e.clientX,y:e.clientY,az:az0,alt:alt0};moved=0}else if(ptr.size===2){const[a,b]=[...ptr.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),f:fov};moved=99}});
+cv.addEventListener('pointermove',e=>{if(!ptr.has(e.pointerId))return;ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});if(ptr.size===2&&pinch){const[a,b]=[...ptr.values()];setFov(pinch.f*pinch.d/Math.max(10,Math.hypot(a.x-b.x,a.y-b.y)))}else if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;moved=Math.max(moved,Math.abs(dx)+Math.abs(dy));if(moved>6&&compass)stopComp();const k=fov/W;az0=drag.az-dx*k;alt0=clamp(drag.alt+dy*k,-5,90)}});
+function up(e){if(ptr.size===1&&moved<8){let best=34,pick=null;for(const h of hits){const d=Math.hypot(h.x-e.clientX,h.y-e.clientY);if(d<best){best=d;pick=h.s}}sel=pick}ptr.delete(e.pointerId);if(ptr.size<2)pinch=null;if(ptr.size===0)drag=null;else if(ptr.size===1){const p=[...ptr.values()][0];drag={x:p.x,y:p.y,az:az0,alt:alt0}}}
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('wheel',e=>{e.preventDefault();setFov(fov*(1+e.deltaY*.001))},{passive:false});
+document.addEventListener('gesturestart',e=>e.preventDefault());
+
+let shotURL=null;
+$('bShot').onclick=()=>{const band=70,c2=document.createElement('canvas');c2.width=cv.width;c2.height=cv.height+band*dpr;const x=c2.getContext('2d');x.drawImage(cv,0,0);x.setTransform(dpr,0,0,dpr,0,0);const red=document.body.classList.contains('red');x.fillStyle=red?'#120405':'#070b1c';x.fillRect(0,H,W,band);x.fillStyle=red?'#ff9a88':'#eadcbc';x.textAlign='center';x.font='500 17px '+SERIF;const sd=new Date(msUTC()+TZ*3600e3);x.fillText('Cielo de El Fuerte, Sinaloa · '+sd.getUTCDate()+' '+MES[sd.getUTCMonth()]+' '+sd.getUTCFullYear()+' · '+fmtH(hour),W/2,H+28);x.font='italic 15px '+SERIF;x.globalAlpha=.75;x.fillText(target?target.s.n+(target.s.ipa?'  /'+target.s.ipa+'/':'')+'  ·  ≈ '+lyTxt(target.s.ly)+' años luz':'mirando al '+DIR[Math.round((((az0%360)+360)%360)/45)%8],W/2,H+52);
+c2.toBlob(b=>{if(!b){toast('No se pudo crear la imagen.');return}const name='cielo-el-fuerte-'+dateStr+'-'+fmtH(hour).replace(':','')+'.png';if(shotURL)URL.revokeObjectURL(shotURL);shotURL=URL.createObjectURL(b);$('shotImg').src=shotURL;const a=$('sSave');a.href=shotURL;a.download=name;const sh=$('sShare');let file=null;try{file=new File([b],name,{type:'image/png'})}catch(e){}if(file&&navigator.canShare&&navigator.canShare({files:[file]})){sh.hidden=false;sh.onclick=()=>navigator.share({files:[file],title:'Cielo de El Fuerte'}).catch(()=>{})}else sh.hidden=true;$('shot').classList.add('open')},'image/png')};
+$('sClose').onclick=()=>$('shot').classList.remove('open');
+
+let dp=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('bInst').hidden=false});
+$('bInst').onclick=async()=>{if(!dp)return;dp.prompt();await dp.userChoice.catch(()=>{});dp=null;$('bInst').hidden=true};
+
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
+navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{$('foot').textContent='Listo para usarse sin conexión. Agrégalo a tu pantalla de inicio para abrirlo como app (en iPhone: Compartir → Agregar a inicio).'}).catch(()=>{})}
+
+let lastD=0;
+function loop(t){requestAnimationFrame(loop);if(t-lastD<30)return;const dt=Math.min(4,(t-lastD)/16.7);lastD=t;
+if(play){hour+=.004*dt;if(hour>36)hour=12;$('hour').value=hour;$('hourOut').textContent=fmtH(hour)}
+if(opt.drift&&!drag&&!compass)az0+=.02*dt;
+if(compass){az0+=((((tAz-az0)%360)+540)%360-180)*.15;alt0+=(clamp(tAlt,-5,90)-alt0)*.15}
+draw(t);if(++frame%6===0)info()}
+syncUI();setFov(100);requestAnimationFrame(loop);
+toast('Arrastra para mirar · pellizca para acercar · toca una estrella',4200);
+})();
+</script>
+</body>
+</html>
